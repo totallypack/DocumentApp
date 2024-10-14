@@ -1,0 +1,10 @@
+Using the Reset File:
+
+Copy the [a789be.tar] file directly on the root of the newly quick formatted USB drive.
+
+Install the USB drive into the MFP while holding down the Stop button again when turning on the MFP. Release the Stop button when the Black Dot appears at the top right of the Op Panel.
+
+You will see [Data Initialization Completed] on the operation panel. Power OFF the
+MFP and remove USB drive. 
+
+If you do not see Data Initialization Completed within 30 seconds, please run it again.

@@ -1,0 +1,13 @@
+{
+  "name": "your-project-name",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server.js",
+    "client": "npm start --prefix frontend"
+  },
+
+    "devDependencies": {
+      "concurrently": "^9.0.1"
+    }
+}

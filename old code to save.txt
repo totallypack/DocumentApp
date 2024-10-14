@@ -1,0 +1,747 @@
+//View Uploaded Documents
+function DocumentListComponent() {
+    const [documents, setDocuments] = useState({
+        "files": ["file1.txt", "file2.pdf"],
+        "folders": ["folder1", "folder2"]
+    });
+
+    const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        const fetchDocuments = async () => {
+            try {
+                const res = await axios.get('/documents')
+                setDocuments(res.data);
+                console.log('Response data:', res.data);
+                setDocuments({
+                    files: res.data.files || [],
+                    folders: res.data.folders || []
+                });
+            } catch (error) {
+                setMessage('Error fetching documents');
+                setDocuments({ files: [], folders: [] }); // Reset to initial state on error
+            }
+        };
+
+        fetchDocuments();
+    }, []);
+
+    return (
+        <div>
+            <h3>Folders</h3>
+            {documents.folders && documents.folders.length > 0 ? (
+                <ul>
+                    {documents.folders.map((folder, index) => (
+                        <li key={index}>{folder}</li>
+                    ))}
+                </ul>
+            ) : <p>No folders available</p>}
+
+            <h3>Files</h3>
+            {documents.folders && documents.folders.length > 0 ? (
+                <ul>
+                    {documents.files.map((file, index) => (
+                        <li key={index}>{file}</li>
+                    ))}
+                </ul>
+            ) : (
+                <p>No files available</p>
+            )}
+
+            {message && <p>{message}</p>} {/* Show error message if fetching fails */}
+        </div>
+    );
+}
+
+
+
+
+
+
+
+
+
+
+// FileUpload component
+function FileUpload() {
+    const [file, setFile] = useState(null);
+    const [message, setMessage] = useState('');
+
+    const handleFileChange = (e) => {
+        setFile(e.target.files[0]);
+    };
+
+    const handleUpload = async () => {
+        // Check if a file is selected before uploading
+        if (!file) {
+            setMessage('Please select a file before uploading.');
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('document', file);
+
+        try {
+            // Make the POST request to upload the file
+            const res = await axios.post('/upload', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+
+            // Display success message
+            setMessage('File uploaded successfully!');
+            console.log('File uploaded:', res.data);
+
+            // Clear the file input after a successful upload
+            setFile(null);
+        } catch (error) {
+            // Display error message
+            setMessage('Error uploading file.');
+            console.error('Error uploading file:', error);
+        }
+    };
+
+    return (
+        <div>
+            <input
+                type="file"
+                onChange={handleFileChange}
+            />
+            <button onClick={handleUpload}>Upload</button>
+            <p>{message}</p> {/* Display success or error message */}
+        </div>
+    );
+}
+
+
+
+
+
+
+//Folder Creation
+function CreateFolderComponent() {
+    const [folderName, setFolderName] = useState('');
+    const [message, setMessage] = useState('');
+
+    const handleFolderCreation = async () => {
+        if (!folderName) {
+            setMessage('Please enter a folder name.');
+            return;
+        }
+
+        try {
+            const res = await axios.post('/create-folder', { folderName });
+            setMessage(res.data.message);
+            setFolderName(''); // Clear the input after successful folder creation
+        } catch (error) {
+            setMessage(error.response ? error.response.data.message : 'Error creating folder.');
+        }
+    };
+
+    return (
+        <div>
+            <input
+                type="text"
+                placeholder="Enter folder name"
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+            />
+            <button onClick={handleFolderCreation}>
+                <FontAwesomeIcon icon={faFolderPlus} /> Create Folder
+            </button>
+            <p>{message}</p> {/* Show success or error message */}
+        </div>
+    );
+}
+
+
+
+
+
+
+//Organize Documents
+function MoveFileComponent() {
+    const [fileName, setFileName] = useState('');
+    const [targetFolder, setTargetFolder] = useState('');
+    const [message, setMessage] = useState('');
+
+    const handleMoveFile = async () => {
+        if (!fileName || !targetFolder) {
+            setMessage('Please select a file and a target folder');
+            return;
+        }
+
+        try {
+            const res = await axios.post('/move-file', { fileName, targetFolder });
+            setMessage(res.data.message);
+        } catch (error) {
+            setMessage('Error moving file');
+        }
+    };
+
+    return (
+        <div>
+            <input
+                type="text"
+                placeholder="File name"
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+            />
+            <input
+                type="text"
+                placeholder="Target folder"
+                value={targetFolder}
+                onChange={(e) => setTargetFolder(e.target.value)}
+            />
+            <button onClick={handleMoveFile}>Move File</button>
+            <p>{message}</p> {/* Display success or error message */}
+        </div>
+    );
+}
+
+
+
+
+Usernames: You can extend the chat to include usernames by allowing users to specify their name when joining.
+Timestamps: Add timestamps to messages for better clarity.
+Persistence: Store the messages in a database (like MongoDB) to persist chat history across server restarts.
+
+
+           setChatMessages((prevMessages) => [...prevMessages, messages]);
+
+
+
+
+
+
+
+// File Search Component with download functionality
+function FileSearch({ files }) {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Filter files based on the search term
+    const filteredFiles = files.filter(file =>
+        file.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div>
+            <input
+                type="text"
+                placeholder="Search files..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <ul>
+                {filteredFiles.map((file, index) => (
+                    <li key={index}>
+                        {/* Create a clickable link that opens the file in a new tab */}
+                        <a
+                            href={`http://localhost:3001/uploads/${file}`} // The URL where files are served
+                            target="_blank" // Opens in a new tab
+                            rel="noopener noreferrer" // Security measure for external links
+                            style={{ textDecoration: 'none', color: 'blue' }} // Optional: styling
+                        >
+                            {file} {/* Display the file name */}
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+function Documents() {
+    const [documents, setDocuments] = useState({ files: [], folders: [] });
+    const [message, setMessage] = useState('');
+
+    // Fetch data from backend when the component loads
+    useEffect(() => {
+        const fetchDocuments = async () => {
+            try {
+                const res = await axios.get('http://localhost:3001/documents'); // Adjust the URL accordingly
+                console.log('Response data:', res.data);
+                setDocuments({
+                    files: res.data.files || [],
+                    folders: res.data.folders || []
+                });
+            } catch (error) {
+                setMessage('Error fetching documents');
+            }
+        };
+
+        fetchDocuments();
+    }, []);
+
+    return (
+        <div>
+            <h1>Documents</h1>
+            {/* Pass files from documents to FileSearch */}
+            <FileSearch files={documents.files} />
+
+            {/* Display Document List */}
+            <DocumentListComponent documents={documents} />
+
+            {/* Display any error messages */}
+            <p>{message ? message : ''}</p>
+        </div>
+    );
+}
+
+export default Documents;
+
+
+
+
+
+// File Search Component with download functionality
+function FileSearch({ files }) {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    // Filter files based on the search term
+    const filteredFiles = files.filter(file =>
+        file.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    return (
+        <div>
+            <input
+                type="text"
+                placeholder="Search files..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <ul>
+                {filteredFiles.map((file, index) => (
+                    <li key={index}>
+                        {/* Create a clickable link that opens the file in a new tab */}
+                        <a
+                            href={`http://localhost:3001/uploads/${file}`} // The URL where files are served
+                            target="_blank" // Opens in a new tab
+                            rel="noopener noreferrer" // Security measure for external links
+                            style={{ textDecoration: 'none', color: 'blue' }} // Optional: styling
+                        >
+                            {file} {/* Display the file name */}
+                        </a>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+
+function App() {
+
+    return (
+        <><div className="cfolders">
+        </div><div className="App">
+                <Router>
+                    <div className="App">
+                        <nav>
+                            <ul>
+                                <li>
+                                    <Link to="/">Home</Link>
+                                </li>
+                                <li>
+                                    <Link to="/upload">Upload File</Link>
+                                </li>
+                                <li>
+                                    <Link to="/documents">Documents</Link>
+                                </li>
+                                <li>
+                                    <Link to="/CreateFolder">CreateFolder</Link>
+                                </li>
+                            </ul>
+                        </nav>
+
+                        {/* Define Routes for different pages */}
+                        <Routes>
+                            <Route path="/" element={<Home />} />
+                            <Route path="/upload" element={<Upload />} />
+                            <Route path="/documents" element={<Documents />} />
+                            <Route path="/CreateFolder" element={<CreateFolder />} />
+                        </Routes>
+                    </div>
+                </Router>
+                <header className="App-header">
+                    <p>
+
+                    </p>
+                </header>
+            </div></>
+    );
+}
+
+export default App;
+
+import React, { useState, useEffect, useRef } from 'react';
+import io from 'socket.io-client';
+import axios from 'axios';
+
+const socket = io('http://localhost:3001', {
+    transports: ['websocket'], // Only use WebSocket transport
+});
+
+function Home() {
+    const [message, setMessage] = useState('');
+    const [chatMessages, setChatMessages] = useState([]); // Chat messages state
+    const chatBoxRef = useRef(null); // Reference to the chat box
+
+    useEffect(() => {
+        // Fetch chat history from the server when the component mounts
+        const fetchChatHistory = async () => {
+            try {
+                const response = await axios.get('http://localhost:3001/chat-history');
+                setChatMessages(response.data); // Load the chat history
+            } catch (error) {
+                console.error('Error fetching chat history:', error);
+            }
+        };
+
+        fetchChatHistory(); // Call the function to load the chat history
+
+        // Listen for incoming chat messages via WebSocket
+        socket.on('chatMessages', (latestMessage) => {
+            setChatMessages((prevMessages) => [...prevMessages, ...latestMessage]); // Append new message to existing messages
+        });
+
+        // Clean up the socket connection when the component unmounts
+        return () => {
+            socket.off('chatMessages');
+        };
+    }, []); // Empty dependency array to ensure it runs only once on mount
+
+    // Scroll to the bottom when chatMessages changes
+    useEffect(() => {
+        if (chatBoxRef.current) {
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+        }
+    }, [chatMessages]); // Trigger effect whenever chatMessages is updated
+
+    // Function to send a new message
+    const sendMessage = () => {
+        if (message.trim()) {
+            socket.emit('newMessage', message); // Send new message to the server
+            setMessage(''); // Clear the input
+        }
+    };
+
+    // Function to clear the chat history
+    const clearChatHistory = async () => {
+        try {
+            await axios.post('http://localhost:3001/clear-chat'); // Send a request to clear the chat
+            setChatMessages([]); // Clear the chatMessages in the frontend
+        } catch (error) {
+            console.error('Error clearing chat history:', error);
+        }
+    };
+
+    return (
+        <div>
+            <h1>Home Chat</h1>
+            <button onClick={clearChatHistory}>Clear Chat History</button> {/* Clear Chat Button */}
+
+            <div
+                className="chat-box"
+                ref={chatBoxRef} // Attach the ref to the chat box
+                style={{ border: '1px solid #ccc', padding: '10px', height: '300px', overflowY: 'scroll' }}
+            >
+                {chatMessages.map((msg, index) => (
+                    <div key={index} style={{ padding: '5px 0' }}>
+                        {msg}
+                    </div>
+                ))}
+            </div>
+
+            <div style={{ marginTop: '10px' }}>
+                <input
+                    type="text"
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    style={{ width: '80%' }}
+                    placeholder="Type a message..."
+                />
+                <button onClick={sendMessage} style={{ width: '18%', marginLeft: '2%' }}>Send</button>
+            </div>
+        </div>
+    );
+}
+
+export default Home;
+
+
+
+
+
+
+
+
+const express = require('express');
+const http = require('http');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
+const socketIo = require('socket.io');
+
+const app = express();
+const port = 3001;
+
+app.get('/api/folders', (req, res) => {
+    fs.readdir(uploadsDir, (err, files) => {
+        if (err) {
+            return res.status(500).json({ message: 'Unable to scan folders' });
+        }
+
+        // Filter only directories (folders)
+        const folders = files.filter(file => fs.lstatSync(path.join(uploadsDir, file)).isDirectory());
+
+        res.json(folders);
+    });
+});
+
+const port = 5000;
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
+
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    credentials: true
+}));
+app.use(bodyParser.json());
+
+app.get('/', (req, res) => {
+    res.send('Document Organizer Backend is running!');
+});
+
+app.get('/api', (req, res) => {
+    res.json({ message: 'Backend is working!' });
+});
+
+//Chat History JSON file
+const messageFile = path.join(__dirname, 'messages.json');
+let chatMessages = [];
+
+if (!fs.existsSync(messageFile)) {
+    console.log("messages.json not found. Creating an empty file...");
+    fs.writeFileSync(messageFile, JSON.stringify([]), 'utf8');
+}
+
+// Middleware to serve static files (uploaded documents)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadPath = 'uploads/';
+        if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath);
+        }
+        cb(null, uploadPath);
+    },
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + '-' + file.originalname);
+    }
+});
+
+const upload = multer({ storage: storage });
+
+app.post('/upload', upload.single('document'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded');
+    }
+    res.json({ message: 'File uploaded successfully', file: req.file });
+});
+
+app.post('/organize', (req, res) => {
+    const { fileName, newFolder } = req.body;
+    const oldPath = path.join(__dirname, 'uploads', fileName);
+    const newPath = path.join(__dirname, 'uploads', newFolder);
+
+    if (!fs.existsSync(newPath)) {
+        fs.mkdirSync(newPath);
+    }
+
+    fs.rename(oldPath, path.join(newPath, fileName), (err) => {
+        if (err) {
+            return res.status(500).send('Error moving file');
+        }
+        res.json({ message: 'File moved successfully' });
+    });
+});
+
+app.post('/upload-multiple', upload.array('documents', 10), (req, res) => {
+    if (!req.files || req.files.length === 0) {
+        return res.status(400).send('No files uploaded');
+    }
+    res.json({
+        message: 'Files uploaded successfully',
+        files: req.files
+    });
+});
+
+app.post('/create-folder', (req, res) => {
+    const { folderName } = req.body;
+    const folderPath = path.join(__dirname, 'uploads', folderName);
+
+    if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath);
+        res.json({ message: `Folder '${folderName}' created successfully` });
+    } else {
+        res.status(400).json({ message: 'Folder already exists' });
+    }
+});
+
+app.get('/documents', (req, res) => {
+    const directoryPath = path.join(__dirname, 'uploads');
+
+    fs.readdir(directoryPath, { withFileTypes: true }, (err, items) => {
+        if (err) {
+            return res.status(500).send('Unable to scan directory');
+        }
+
+        const files = items.filter(item => !item.isDirectory()).map(item => item.name);
+        const folders = items.filter(item => item.isDirectory()).map(item => item.name);
+
+        res.json({ files, folders });
+    });
+});
+
+app.post('/move-file', (req, res) => {
+    const { fileName, targetFolder } = req.body;
+    const oldPath = path.join(__dirname, 'uploads', fileName);
+    const newPath = path.join(__dirname, 'uploads', targetFolder, fileName);
+
+    if (!fs.existsSync(path.join(__dirname, 'uploads', targetFolder))) {
+        return res.status(400).send('Target folder does not exist');
+    }
+
+    fs.rename(oldPath, newPath, (err) => {
+        if (err) {
+            return res.status(500).send('Error moving file');
+        }
+        res.json({ message: 'File moved successfully' });
+    });
+});
+
+app.get('/documents', (req, res) => {
+    const folderPath = req.query.folder || '';
+    const directoryPath = path.join(__dirname, 'uploads', folderPath);
+
+    fs.readdir(directoryPath, { withFileTypes: true }, (err, items) => {
+        if (err) {
+            return res.status(500).send('Unable to scan directory');
+        }
+
+        const files = items.filter(item => !item.isDirectory()).map(item => item.name);
+        const folders = items.filter(item => item.isDirectory()).map(item => item.name);
+
+        res.json({ files, folders });
+    });
+});
+
+// Set up the chat backend with WebSockets
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: "http://localhost:3000",
+        methods: ["GET", "POST"],
+        credentials: true,
+    },
+    transports: ['websocket'],
+});
+
+io.on('connection', (socket) => {
+    console.log('New client connected');
+
+    // Send the full chat history when a new client connects
+    socket.emit('chatMessages', chatMessages);
+
+    // Listen for new chat messages
+    socket.on('newMessage', (message) => {
+        console.log('Message received:', message);
+        chatMessages.push(message);
+
+        // Save the updated message list to the JSON file
+        try {
+            fs.writeFileSync(messageFile, JSON.stringify(chatMessages, null, 2), 'utf8');
+        } catch (error) {
+            console.error('Error saving messages to messages.json:', error);
+        }
+
+        // Emit the new message to all clients
+        io.emit('chatMessages', [message]);
+    });
+
+    // Handle client disconnect
+    socket.on('disconnect', () => {
+        console.log('Client disconnected');
+    });
+});
+
+// Load messages from the JSON file on server start
+if (fs.existsSync(messageFile)) {
+    try {
+        const data = fs.readFileSync(messageFile, 'utf8');
+        chatMessages = JSON.parse(data);
+    } catch (error) {
+        console.error('Error parsing messages.json:', error);
+        chatMessages = [];
+    }
+}
+
+// Route to serve the chat history
+app.get('/chat-history', (req, res) => {
+    res.json(chatMessages);
+});
+
+// Route to clear chat history
+app.post('/clear-chat', (req, res) => {
+    chatMessages = []; // Clear the chat history in memory
+
+    // Clear the chat history in the JSON file
+    try {
+        fs.writeFileSync(messageFile, JSON.stringify([], null, 2), 'utf8');
+        res.json({ message: 'Chat history cleared!' });
+    } catch (error) {
+        console.error('Error clearing chat history:', error);
+        res.status(500).json({ message: 'Failed to clear chat history' });
+    }
+});
+
+// Socket.io setup
+io.on('connection', (socket) => {
+    console.log('New client connected');
+    socket.emit('chatMessages', chatMessages);
+
+    socket.on('newMessage', (message) => {
+        console.log('Message received:', message);
+        chatMessages.push(message);
+
+        fs.writeFileSync(messageFile, JSON.stringify(chatMessages, null, 2));
+        io.emit('chatMessages', chatMessages);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('Client disconnected');
+    });
+});
+
+server.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
+
+
+
+                                {/* Download Button */}
+                                <Button
+                                    variant="contained"
+                                    onClick={() => downloadFile(file)}
+                                    style={{ marginRight: '10px' }}
+                                >
+                                    Download
+                                </Button>

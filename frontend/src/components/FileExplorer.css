@@ -1,0 +1,129 @@
+/* Container for the entire file explorer */
+.file-explorer-container {
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+/* Folders and Files Header */
+.file-explorer h3 {
+    color: #0073e6;
+    margin-bottom: 10px;
+}
+
+/* List styling for folders and files */
+.file-explorer-list {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+/* Individual List Items */
+.file-explorer-list-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+    .file-explorer-list-item:hover {
+        background-color: #eef7ff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Icons for folders and files */
+    .file-explorer-list-item .MuiListItemIcon-root {
+        margin-right: 15px;
+        color: #0073e6;
+    }
+
+    /* Download and Open Buttons */
+    .file-explorer-list-item .file-actions {
+        margin-left: auto;
+    }
+
+        .file-explorer-list-item .file-actions button {
+            margin-left: 10px;
+        }
+
+/* General Button Styling */
+button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+    button:hover {
+        background-color: #0056b3;
+        transform: scale(1.05);
+    }
+
+    button:focus {
+        outline: none;
+    }
+
+.create-folder-btn, .delete-btn {
+    margin: 5px;
+    padding: 10px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+    .create-folder-btn:hover, .delete-btn:hover {
+        background-color: #218838;
+    }
+
+.breadcrumbs {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+    .breadcrumbs span {
+        cursor: pointer;
+        color: #0073e6;
+        text-decoration: underline;
+    }
+
+        .breadcrumbs span:hover {
+            color: #0056b3;
+        }
+
+.search-bar {
+    margin-bottom: 15px;
+    padding: 8px;
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+}
+
+/* Add smooth fade transitions */
+.fade-enter {
+    opacity: 0;
+}
+
+.fade-enter-active {
+    opacity: 1;
+    transition: opacity 300ms;
+}
+
+.fade-exit {
+    opacity: 1;
+}
+
+.fade-exit-active {
+    opacity: 0;
+    transition: opacity 300ms;
+}
